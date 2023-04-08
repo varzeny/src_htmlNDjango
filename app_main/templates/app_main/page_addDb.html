@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+
+    <head>
+
+        <meta charset="UTF-8">
+        <title>app_main</title>
+        
+    </head>
+
+
+    <body>
+
+        <h2>{{posttt}}</h2>
+        <hr/>
+        <form method="post">
+            {%csrf_token%}
+            <fieldset>
+                <legend>모델에 데이터베이스 추가</legend>
+                <p>name<input type="text" name="name"></p>
+                <p>type<input type="text" name="type"></p>
+                <p>ip<input type="text" name="ip"></p>
+                <p>port<input type="number" name="port"></p>
+                <p>note<input type="text" name="note"></p>
+                <p><button type="submit">등록하기</button></p>
+            </fieldset>
+        </form>
+
+    </body>
+
+
+</html>

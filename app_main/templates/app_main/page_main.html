@@ -1,10 +1,112 @@
 <!DOCTYPE html>
 <html lang="ko">
+
+
     <head>
+
         <meta charset="UTF-8">
         <title>app_main</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        {%load static%}
+
+
+        <script>
+            function func_mouseTracking(event)
+            {
+                var x=event.offsetX;
+                var y=event.offsetY;
+                
+                document.getElementById("x").innerHTML="x 좌표 : " + x;
+                document.getElementById("y").innerHTML="y 좌표 : " + y;
+            }
+
+
+            function func_clickControl(pk)
+            {
+                $.ajax({
+                    url:"{%url 'dbRead'%}",
+                    type:"POST",
+                    data:{
+                        'pk':pk,
+                        'csrfmiddlewaretoken':'{{csrf_token}}'
+                    },
+                    success:function(response){
+                        var record = JSON.parse(response.record)[0];
+                        console.log(record);
+                        document.getElementById("head_image").src="/media/"+record.fields.image;
+                        document.getElementById("name").innerHTML="name : "+record.fields.name;
+                        document.getElementById("type").innerHTML="type : "+record.fields.type;
+                        document.getElementById("online").innerHTML="online : "+record.fields.online;
+                        document.getElementById("task").innerHTML="task : "+record.fields.task;
+
+                    },
+                    error:function(xhr){
+                        console.log('AJAX request error');
+                    }
+                });
+
+            }
+
+
+
+        </script>
+
+        
     </head>
+
+
     <body>
-        <h1>hi!!!!!!</h1>
+        <div style="display:flex;">
+            <div style="flex:8; border:5px solid black; margin: 2px; padding: 2px;">
+                <img id="map" 
+                    src="{%static 'img/map.bmp'%}" 
+                    style="max-width:100%; height:auto; cursor:crosshair" 
+                    onmousemove="func_mouseTracking(event)"
+                    alt="map">
+                <hr>
+                <div id="x">x 좌표 :</div>
+                <div id="y">y 좌표 :</div>
+            </div>
+            <div style="flex:2; border:5px solid black; margin: 2px; padding: 2px;">
+                {%for r in robots%}
+                    <div id="robot_{{r.pk}}" onclick="func_clickControl('{{r.pk}}')" style="position:relative">
+                        [{{r.pk}}]&nbsp{{r.name}}
+                        <img src="{{r.image.url}}" width="90" height="90" style="display:block">
+                        <span style="position:absolute; top:0; left:0; padding:5px; color:#fff; font-weight:bold;"></span>
+                    </div>
+                    {%endfor%}
+            </div>      
+        </div>
+
+        <div style="display:flex;">
+            <div style="flex:8; border:5px solid black; margin: 2px; padding: 2px;">
+                <div style="display:flex;">
+                    <div id="select_robot_head_image" style="flex:1">
+                        <img id="head_image" src="{%static 'img/no-image-icon.png'%}" width="90" height="90" alt="image">
+                    </div>
+                    <div id="select_robot_status" style="flex:3">
+                        <div id="name">name :</div>
+                        <div id="type">type :</div>
+                        <div id="online">online :</div>
+                        <div id="task">task :</div>
+                    </div>
+                    <div style="flex:5">
+                        <div id="coordinate">coordinate</div>
+    
+                    </div>
+                    <div id="select_robot_pannel" style="flex:1">
+
+                    </div>
+                </div>               
+            </div>
+            <div style="flex:2; border:5px solid black; margin: 2px; padding: 2px;">
+                
+            </div>      
+        </div>
+        
+
+
     </body>
+
+
 </html>
