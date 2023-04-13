@@ -9,8 +9,13 @@ class Robot(models.Model):
     ip=models.CharField(max_length=30,blank=True)
     port=models.IntegerField(blank=True)
     online=models.BooleanField(default=False)
-    status=models.JSONField(blank=True,default=dict)
-    task=models.CharField(max_length=100,blank=True,null=True)
+    Status=models.CharField(max_length=30,blank=True)
+    StateOfCharge = models.IntegerField(blank=True,null=True)
+    Location_x = models.IntegerField(blank=True,null=True)
+    Location_y = models.IntegerField(blank=True,null=True)
+    Location_z = models.IntegerField(blank=True,null=True)
+    Temperature = models.IntegerField(blank=True,null=True)
+    task=models.CharField(max_length=200,blank=True,null=True)
 
     note=models.TextField(blank=True,null=True)
 
@@ -18,6 +23,18 @@ class Robot(models.Model):
     def __str__(self):
         return f"[{self.pk}] {self.name}"
     
+
+class Goal(models.Model):
+    name=models.CharField(max_length=30)
+    type=models.CharField(max_length=30,blank=True)
+    Location_x = models.IntegerField(blank=True,null=True)
+    Location_y = models.IntegerField(blank=True,null=True)
+    Location_z = models.IntegerField(blank=True,null=True)
+    note=models.TextField(blank=True,null=True)
+
+    def __str__(self):
+        return f"[{self.pk}] {self.name}"
+
 
 
 class Post(models.Model):

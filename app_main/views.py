@@ -2,10 +2,14 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.core import serializers
 
+from .apps import NETWORKCONTROLLER
+
 # Create your views here.
 
 from . models import Robot
 from . models import Post
+
+
 
 def showPage(request):
     if request.method == "POST":
@@ -47,3 +51,48 @@ def dbRead(request):
 
     return JsonResponse({'success':True, 'record':record_json})
 
+
+def dbRead_forever(request):
+    records_json = []
+    for pk in NETWORKCONTROLLER.connected:
+        record = Robot.objects.get(pk=pk)
+        records_json.append(serializers.serialize('json',[record]))
+
+    return JsonResponse({'success':True, 'records':records_json})
+
+
+
+def connect(request):
+    pk=request.POST.get('pk')
+    record=Robot.objects.get(pk=pk)
+
+    try:
+        NETWORKCONTROLLER.addConnect(pk,record)
+        record.online=True
+        record.save()
+    except:
+        print("add_fail")
+
+    return redirect('show')
+
+
+def moveUnit(request):
+    pk = request.POST.get('pk')
+    x = request.POST.get('x')
+    y = request.POST.get('y')
+    NETWORKCONTROLLER.connected[pk].send_sock(f"gotoPoint {x} {y} 0")
+    print("명령 전송됨!")
+
+    return redirect('show')
+
+def sendMsg2Unit(request):
+    pk = request.POST.get('pk')
+    msg = request.POST.get('msg')
+
+    NETWORKCONTROLLER.connected[pk].send_sock(msg)
+
+    #NETWORKCONTROLLER.connected[pk].send_sock(f"outputOn o1")
+    
+    print("명령 전송됨!")
+
+    return redirect('show')

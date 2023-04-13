@@ -7,7 +7,12 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('',views.showPage, name='show'),
+    path('dbRead_forever',views.dbRead_forever,name="dbRead_forever"),
     path('dbRead/',views.dbRead,name='dbRead'),
+    path('connect/',views.connect,name='connect'),
+    path('moveUnit/',views.moveUnit,name='moveUnit'),
+    path('sendMsg2Unit',views.sendMsg2Unit,name='sendMsg2Unit'),
+
 ]
 
 

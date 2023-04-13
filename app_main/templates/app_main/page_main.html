@@ -16,37 +16,266 @@
                 var x=event.offsetX;
                 var y=event.offsetY;
                 
-                document.getElementById("x").innerHTML="x 좌표 : " + x;
-                document.getElementById("y").innerHTML="y 좌표 : " + y;
+                document.getElementById("x").innerHTML=x;
+                document.getElementById("y").innerHTML=y;
             }
 
 
-            function func_clickControl(pk)
+            function func_updateData()
+            {
+                $.ajax({
+                    url:"{%url 'dbRead_forever'%}",
+                    type:"POST",
+                    data:{
+                        'csrfmiddlewaretoken':'{{csrf_token}}'
+                    },
+                    success:function(response){
+                        var records = response.records;
+                        for(var i=0;i<records.length;i++)
+                        {
+                            var record=JSON.parse(records[i])[0];
+                            var target = document.getElementById(record.fields.name)
+
+                            if (record.pk == document.getElementById("pk").innerHTML)
+                            {
+                                document.getElementById("pk").innerHTML=record.pk;
+                                document.getElementById("head_image").src="/media/"+record.fields.image;
+                                document.getElementById("name").innerHTML="name : "+record.fields.name;
+                                document.getElementById("type").innerHTML="type : "+record.fields.type;
+                                document.getElementById("ip").innerHTML="ip : "+record.fields.ip;
+                                document.getElementById("port").innerHTML="port : "+record.fields.port;
+                                document.getElementById("online").innerHTML="online : "+record.fields.online;
+                                
+                                document.getElementById("Status").innerHTML="Status : "+record.fields.Status;
+                                document.getElementById("Location_x").innerHTML="Location_x : "+record.fields.Location_x;
+                                document.getElementById("Location_y").innerHTML="Location_y : "+record.fields.Location_y;
+                                document.getElementById("Location_z").innerHTML="Location_z : "+record.fields.Location_z;
+                                document.getElementById("StateOfCharge").innerHTML="StateOfCharge : "+record.fields.StateOfCharge;
+                                document.getElementById("Temperature").innerHTML="Temperature : "+record.fields.Temperature;
+                                
+                            }
+
+                            if(target)
+                            {
+                                console.log(record.fields.name+" 아이콘을 이동함")
+
+                                target.style.left = String((record.fields.Location_x/10)+100)+"px";
+                                target.style.top = String(((record.fields.Location_y*-1)/10)+270)+"px";
+                                target.style.transform = "rotate("+String(record.fields.Location_z*-1)+"deg)"
+
+                                console.log(record.fields.Location_x,record.fields.Location_y,record.fields.Location_z)
+                                console.log(target.style.left,target.style.top)
+                            }
+                            else
+                            {
+
+                                console.log(record.fields.name+" 로봇 아이콘이 새로 생성됨")
+
+                                const img = document.createElement("img");
+                                img.id=record.fields.name;
+                                img.src = "{%static 'img/arrow.png'%}";
+                                img.width = 30;
+                                img.height = 30;
+                                img.style.position = "absolute";
+                                img.style.left = String(0) + "px";
+                                img.style.top = String(0) + "px";
+                                img.style.transform = "rotate(0deg)";
+                                img.style.zIndex="1";
+                                img.style.borderRadius = "50%"
+                                img.addEventListener('click', function() {func_clickTarget(record.pk)});
+                                document.getElementById("div_map").appendChild(img);
+                            }
+
+                        }
+                                            
+                    },
+                    error:function(xhr){
+                        console.log(error.text())
+                    }
+                })
+            }
+
+            function func_clickTarget(pk)
+            {
+                document.getElementById("pk").innerHTML=parseInt(pk);
+
+
+            }
+
+
+            function func_move(pk)
+            {
+                var x = document.getElementById("x").innerHTML
+                var y = document.getElementById("y").innerHTML
+
+
+
+                // create a div for the context menu
+                var menu = document.createElement("div");
+                menu.style.position = "absolute";
+                menu.style.top = y + "px";
+                menu.style.left = x + "px";
+                menu.style.width = "150px";
+                menu.style.border = "1px solid black";
+                
+                // create menu items
+                var item1 = document.createElement("div");
+                item1.textContent = "movePoint";
+                item1.style.padding = "5px";
+                item1.style.cursor = "pointer";
+                item1.addEventListener("click", function() {
+                    // code to execute when option 1 is clicked
+                    $.ajax({
+                    url:"{%url 'moveUnit'%}",
+                    type:"POST",
+                    data:{
+                        'csrfmiddlewaretoken':'{{csrf_token}}',
+                        'pk':parseInt(pk),
+                        'x':(x-100)*10,
+                        'y':(y-270)*10*-1
+                    },
+                    success:function(response){
+
+                    },
+                    error:function(xhr){
+                        console.log(error.text())
+                    }
+                })
+                    menu.remove(); // remove the context menu
+                });
+                
+                var item2 = document.createElement("div");
+                item2.textContent = "goto Goal";
+                item2.style.padding = "5px";
+                item2.style.cursor = "pointer";
+                item2.addEventListener("click", function() {
+                    // code to execute when option 2 is clicked
+                    $.ajax({
+                    url:"{%url 'moveUnit'%}",
+                    type:"POST",
+                    data:{
+                        'csrfmiddlewaretoken':'{{csrf_token}}',
+                        'pk':parseInt(pk),
+                        'x':(x-100)*10,
+                        'y':(y-270)*10*-1
+                    },
+                    success:function(response){
+
+                    },
+                    error:function(xhr){
+                        console.log(error.text())
+                    }
+                })
+
+                    while(document.getElementById("Status").innerHTML != "Arrived")
+                    {}
+                    $.ajax({
+                    url:"{%url 'io'%}",
+                    type:"POST",
+                    data:{
+                        'csrfmiddlewaretoken':'{{csrf_token}}',
+                        'pk':parseInt(pk)
+                    },
+                    success:function(response){
+
+                    },
+                    error:function(xhr){
+                        console.log(error.text())
+                    }
+                })
+                    menu.remove(); // remove the context menu
+                });
+                
+                // add menu items to the menu
+                menu.appendChild(item1);
+                menu.appendChild(item2);
+                
+                // add the menu to the body of the page
+                document.body.appendChild(menu);
+
+
+
+                $.ajax({
+                    url:"{%url 'moveUnit'%}",
+                    type:"POST",
+                    data:{
+                        'csrfmiddlewaretoken':'{{csrf_token}}',
+                        'pk':parseInt(pk),
+                        'x':(x-100)*10,
+                        'y':(y-270)*10*-1
+                    },
+                    success:function(response){
+
+                    },
+                    error:function(xhr){
+                        console.log(error.text())
+                    }
+                })
+            }
+
+
+
+
+            function func_select(pk)
             {
                 $.ajax({
                     url:"{%url 'dbRead'%}",
                     type:"POST",
                     data:{
-                        'pk':pk,
+                        'pk':parseInt(pk),
                         'csrfmiddlewaretoken':'{{csrf_token}}'
                     },
                     success:function(response){
                         var record = JSON.parse(response.record)[0];
                         console.log(record);
+
+                        document.getElementById("pk").innerHTML=record.pk;
                         document.getElementById("head_image").src="/media/"+record.fields.image;
                         document.getElementById("name").innerHTML="name : "+record.fields.name;
                         document.getElementById("type").innerHTML="type : "+record.fields.type;
+                        document.getElementById("ip").innerHTML="ip : "+record.fields.ip;
+                        document.getElementById("port").innerHTML="port : "+record.fields.port;
                         document.getElementById("online").innerHTML="online : "+record.fields.online;
-                        document.getElementById("task").innerHTML="task : "+record.fields.task;
-
+                        
+                        document.getElementById("Status").innerHTML="Status : "+record.fields.Status;
+                        document.getElementById("Location_x").innerHTML="Location_x : "+record.fields.Location_x;
+                        document.getElementById("Location_y").innerHTML="Location_y : "+record.fields.Location_y;
+                        document.getElementById("Location_z").innerHTML="Location_z : "+record.fields.Location_z;
+                        document.getElementById("StateOfCharge").innerHTML="StateOfCharge : "+record.fields.StateOfCharge;
+                        document.getElementById("Temperature").innerHTML="Temperature : "+record.fields.Temperature;
+                        
                     },
                     error:function(xhr){
                         console.log('AJAX request error');
                     }
                 });
-
             }
 
+
+            function func_connect(pk)
+            {
+                $.ajax({
+                    url:"{%url 'connect'%}",
+                    type:"POST",
+                    data:{
+                        'pk':parseInt(pk),
+                        'csrfmiddlewaretoken':'{{csrf_token}}'
+                    },
+                    success:function(response){
+                        console.log("연결 성공!")
+                    },
+                    error:function(xhr){
+                        console.log(xhr.responseText);
+                    }
+                })
+
+            }
+            
+
+        
+
+
+            setInterval(func_updateData,1000)
 
 
         </script>
@@ -55,21 +284,24 @@
     </head>
 
 
-    <body>
+    <body oncontextmenu="return false">
         <div style="display:flex;">
             <div style="flex:8; border:5px solid black; margin: 2px; padding: 2px;">
-                <img id="map" 
-                    src="{%static 'img/map.bmp'%}" 
-                    style="max-width:100%; height:auto; cursor:crosshair" 
-                    onmousemove="func_mouseTracking(event)"
-                    alt="map">
+                <div id="div_map" style="position:relative; width:1400px; height:auto;" oncontextmenu="func_move(document.getElementById('pk').innerText)" onmousemove="func_mouseTracking(event)">
+                    <img id="map" 
+                        src="{%static 'img/map.bmp'%}" 
+                        style="max-width:100%; height:auto; cursor:crosshair"
+                        alt="map">
+                </div>
                 <hr>
-                <div id="x">x 좌표 :</div>
-                <div id="y">y 좌표 :</div>
+                <div>
+                    <div id="x">x 좌표 :</div>
+                    <div id="y">y 좌표 :</div>
+                </div>
             </div>
             <div style="flex:2; border:5px solid black; margin: 2px; padding: 2px;">
                 {%for r in robots%}
-                    <div id="robot_{{r.pk}}" onclick="func_clickControl('{{r.pk}}')" style="position:relative">
+                    <div id="robot_{{r.pk}}" onclick="func_select('{{r.pk}}')" style="position:relative">
                         [{{r.pk}}]&nbsp{{r.name}}
                         <img src="{{r.image.url}}" width="90" height="90" style="display:block">
                         <span style="position:absolute; top:0; left:0; padding:5px; color:#fff; font-weight:bold;"></span>
@@ -81,21 +313,28 @@
         <div style="display:flex;">
             <div style="flex:8; border:5px solid black; margin: 2px; padding: 2px;">
                 <div style="display:flex;">
-                    <div id="select_robot_head_image" style="flex:1">
-                        <img id="head_image" src="{%static 'img/no-image-icon.png'%}" width="90" height="90" alt="image">
+                    <div id="select_robot_head_image" style="flex:1; border:2px solid black; margin: 4px;">
+                        <img id="head_image" src="{%static 'img/no-image-icon.png'%}" style="max-width:100%; height:auto;" alt="image">
                     </div>
-                    <div id="select_robot_status" style="flex:3">
+                    <div id="select_robot_status" style="flex:3; border:2px solid black; margin: 4px;">
+                        <div id="pk">pk</div>
                         <div id="name">name :</div>
                         <div id="type">type :</div>
+                        <div id="ip">ip :</div>
+                        <div id="port">port :</div>
                         <div id="online">online :</div>
-                        <div id="task">task :</div>
                     </div>
-                    <div style="flex:5">
-                        <div id="coordinate">coordinate</div>
-    
-                    </div>
-                    <div id="select_robot_pannel" style="flex:1">
+                    <div style="flex:5; border:2px solid black; margin: 4px;">
+                        <div id="Status">Status :</div>
+                        <div id="Location_x">Location_x :</div>
+                        <div id="Location_y">Location_y :</div>
+                        <div id="Location_z">Location_z :</div>
+                        <div id="StateOfCharge">StateOfCharge :</div>
+                        <div id="Temperature">Temperature :</div>
 
+                    </div>
+                    <div id="select_robot_pannel" style="flex:1; border:2px solid black; margin: 4px;">
+                        <button id="pb_connect" data-value="None" onclick="func_connect(document.getElementById('pk').innerHTML)">Connect</button>
                     </div>
                 </div>               
             </div>
